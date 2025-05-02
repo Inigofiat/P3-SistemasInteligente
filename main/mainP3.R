@@ -45,20 +45,15 @@ print(contNullVac)
 
 sustitucionNull <- function(dataframe) {
   for(col in colnames(dataframe)) {
-    # Si hay valores NA en la columna
     if(any(is.na(dataframe[[col]]))) {
-      # Encontrar el valor más común (moda)
       valorComun <- names(sort(table(dataframe[[col]], useNA = "no"), decreasing = TRUE))[1]
       
-      # Convertir a número si la columna es numérica
       if(is.numeric(dataframe[[col]])) {
         valorComun <- as.numeric(valorComun)
       }
       
-      # Reemplazar NAs con el valor común
       dataframe[[col]][is.na(dataframe[[col]])] <- valorComun
       
-      # Mostrar mensaje
       cat("Columna", col, "- NAs reemplazados con:", valorComun, "\n")
     }
   }
@@ -87,4 +82,94 @@ scatter.smooth(x=data$Newspaper, y=data$Sales, main="Newspaper vs Sales",
                               xlab = "Inversión en Newspaper (miles $)",
                               ylab = "Ventas (miles $)")
 par(mfrow=c(1,1))
+
+pruebasIndices <- createDataPartition(y=data$Sales, p=0.75, list=FALSE)
+pruebaData <- data[pruebasIndices,]
+testData <- data[pruebasIndices,]
+
+calculoErrores <- function(actual, nuevo){
+  mae <- mean(abs(actual-nuevo))
+  mse <- mean((actual-nuevo)^2)
+  mape <- mean(abs((actual - nuevo) / actual)) * 100
+  
+  return(list(MAE = mae, MSE = mse, MAPE = mape))
+  
+}
+
+modelos <- list()
+erroresModelos <- data.frame(Model=character(), MAE=numeric(), MSE=numeric(),
+                             MAPE=numeric(), stringsAsFactors = FALSE)
+
+modelos[[1]] <- lm(Sales ~ TV, data=pruebaData) 
+predicciones <- predict(modelos[[1]], testData)
+errores <- calculoErrores(testData$Sales, predicciones)
+erroresModelos <- rbind(erroresModelos, data.frame(Model = "TV", MAE = errores$MAE, MSE = errores$MSE, MAPE = errores$MAPE))
+
+modelos[[2]] <- lm(Sales ~ Radio, data=pruebaData) 
+predicciones <- predict(modelos[[2]], testData)
+errores <- calculoErrores(testData$Sales, predicciones)
+erroresModelos <- rbind(erroresModelos, data.frame(Model = "Radio", MAE = errores$MAE, MSE = errores$MSE, MAPE = errores$MAPE))
+
+modelos[[3]] <- lm(Sales ~ Newspaper, data=pruebaData) 
+predicciones <- predict(modelos[[3]], testData)
+errores <- calculoErrores(testData$Sales, predicciones)
+erroresModelos <- rbind(erroresModelos, data.frame(Model = "Newspaper", MAE = errores$MAE, MSE = errores$MSE, MAPE = errores$MAPE))
+
+modelos[[4]] <- lm(Sales ~ TV + Radio, data=pruebaData) 
+predicciones <- predict(modelos[[4]], testData)
+errores <- calculoErrores(testData$Sales, predicciones)
+erroresModelos <- rbind(erroresModelos, data.frame(Model = "TV + Radio", MAE = errores$MAE, MSE = errores$MSE, MAPE = errores$MAPE))
+
+modelos[[5]] <- lm(Sales ~ TV + Radio, data=pruebaData) 
+predicciones <- predict(modelos[[5]], testData)
+errores <- calculoErrores(testData$Sales, predicciones)
+erroresModelos <- rbind(erroresModelos, data.frame(Model = "TV + Neswpaper", MAE = errores$MAE, MSE = errores$MSE, MAPE = errores$MAPE))
+
+modelos[[6]] <- lm(Sales ~ Radio + Newspaper, data=pruebaData) 
+predicciones <- predict(modelos[[6]], testData)
+errores <- calculoErrores(testData$Sales, predicciones)
+erroresModelos <- rbind(erroresModelos, data.frame(Model = "Radio + Newspaper", MAE = errores$MAE, MSE = errores$MSE, MAPE = errores$MAPE))
+
+modelos[[7]] <- lm(Sales ~ TV + Radio + Newspaper, data=pruebaData) 
+predicciones <- predict(modelos[[7]], testData)
+errores <- calculoErrores(testData$Sales, predicciones)
+erroresModelos <- rbind(erroresModelos, data.frame(Model = "TV + Radio + Newspaper", MAE = errores$MAE, MSE = errores$MSE, MAPE = errores$MAPE))
+
+print("Errores de cada modelo:")
+print(erroresModelos)
+
+mejorModeloIndexMAE <- which.min(erroresModelos$MAE)
+mejorModeloNombreMAE <- erroresModelos$Model[mejorModeloIndexMAE]
+mejorModeloMAE <- modelos[[mejorModeloIndexMAE]]
+
+mejorModeloIndexMSE <- which.min(erroresModelos$MSE)
+mejorModeloNombreMSE <- erroresModelos$Model[mejorModeloIndexMSE]
+mejorModeloMSE <- modelos[[mejorModeloIndexMSE]]
+
+mejorModeloIndexMAPE <- which.min(erroresModelos$MAPE)
+mejorModeloNombreMAPE <- erroresModelos$Model[mejorModeloIndexMAPE]
+mejorModeloMAPE <- modelos[[mejorModeloIndexMAPE]]
+
+cat("\n El mejor modelo basado en MAE es:", mejorModeloNombreMAE, "\n")
+cat("MAE:", erroresModelos$MAE[mejorModeloIndexMAE], "\n")
+
+cat("\n El mejor modelo basado en MSE es:", mejorModeloNombreMSE, "\n")
+cat("MSE:", erroresModelos$MSE[mejorModeloIndexMSE], "\n")
+
+cat("\n El mejor modelo basado en MAPE es:", mejorModeloNombreMAPE, "\n")
+cat("MAPE:", erroresModelos$MAPE[mejorModeloIndexMAPE], "\n")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
