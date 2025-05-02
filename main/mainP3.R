@@ -142,25 +142,51 @@ mejorModeloIndexMAE <- which.min(erroresModelos$MAE)
 mejorModeloNombreMAE <- erroresModelos$Model[mejorModeloIndexMAE]
 mejorModeloMAE <- modelos[[mejorModeloIndexMAE]]
 
-mejorModeloIndexMSE <- which.min(erroresModelos$MSE)
-mejorModeloNombreMSE <- erroresModelos$Model[mejorModeloIndexMSE]
-mejorModeloMSE <- modelos[[mejorModeloIndexMSE]]
-
-mejorModeloIndexMAPE <- which.min(erroresModelos$MAPE)
-mejorModeloNombreMAPE <- erroresModelos$Model[mejorModeloIndexMAPE]
-mejorModeloMAPE <- modelos[[mejorModeloIndexMAPE]]
+# mejorModeloIndexMSE <- which.min(erroresModelos$MSE)
+# mejorModeloNombreMSE <- erroresModelos$Model[mejorModeloIndexMSE]
+# mejorModeloMSE <- modelos[[mejorModeloIndexMSE]]
+# 
+# mejorModeloIndexMAPE <- which.min(erroresModelos$MAPE)
+# mejorModeloNombreMAPE <- erroresModelos$Model[mejorModeloIndexMAPE]
+# mejorModeloMAPE <- modelos[[mejorModeloIndexMAPE]]
 
 cat("\n El mejor modelo basado en MAE es:", mejorModeloNombreMAE, "\n")
 cat("MAE:", erroresModelos$MAE[mejorModeloIndexMAE], "\n")
 
-cat("\n El mejor modelo basado en MSE es:", mejorModeloNombreMSE, "\n")
-cat("MSE:", erroresModelos$MSE[mejorModeloIndexMSE], "\n")
+# cat("\n El mejor modelo basado en MSE es:", mejorModeloNombreMSE, "\n")
+# cat("MSE:", erroresModelos$MSE[mejorModeloIndexMSE], "\n")
+# 
+# cat("\n El mejor modelo basado en MAPE es:", mejorModeloNombreMAPE, "\n")
+# cat("MAPE:", erroresModelos$MAPE[mejorModeloIndexMAPE], "\n")
 
-cat("\n El mejor modelo basado en MAPE es:", mejorModeloNombreMAPE, "\n")
-cat("MAPE:", erroresModelos$MAPE[mejorModeloIndexMAPE], "\n")
+cat("\n Significación estadística del modelo (p-value):\n")
+print(summary(mejorModeloMAE)$fstatistic)
+pvalue <- pf(summary(mejorModeloMAE)$fstatistic[1], 
+             summary(mejorModeloMAE)$fstatistic[2], 
+             summary(mejorModeloMAE)$fstatistic[3], 
+             lower.tail = FALSE)
+cat("p-value:", pvalue, "\n")
+
+totalPredicciones <- predict(mejorModeloMAE, data)
+errorAbsoluto <- abs(data$Sales - totalPredicciones)
+maximoErrorIndex <- which.max(errorAbsoluto)
+
+cat("\nMuestra con mayor error absoluto:\n")
+print(data[maximoErrorIndex, ])
+cat("Valor real:", data$Sales[maximoErrorIndex], "\n")
+cat("Valor predicho:", totalPredicciones[maximoErrorIndex], "\n")
+cat("Error absoluto:", errorAbsoluto[maximoErrorIndex], "\n")
 
 
+totalInversion <- data$TV + data$Radio + data$Newspaper
+retornoInversion <- data$Sales / totalInversion
 
+top_campaigns_ROI <- data %>%
+  arrange(desc(ROI)) %>%
+  head(10)
+
+cat("\n10 Campañas con más beneficio (mayor relación ventas/inversión):\n")
+print(top_campaigns_ROI[, c("id", "TV", "Radio", "Newspaper", "Sales", "ROI")])
 
 
 
