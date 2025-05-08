@@ -101,7 +101,7 @@ calculoErrores <- function(actual, nuevo){
 }
 
 modelos <- list()
-erroresModelos <- data.frame(Model=character(), MAE=numeric(), MSE=numeric(),
+erroresModelos <- data.frame(Modelo=character(), MAE=numeric(), MSE=numeric(),
                              MAPE=numeric(), stringsAsFactors = FALSE)
 
 modelos[[1]] <- lm(Sales ~ TV, data=pruebaData)
